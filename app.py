@@ -72,25 +72,25 @@ def show_details_by_id(did):
     if not r:
         st.info("pick a drug from the search box or click a node (use the dropdown for now).")
         return
-    st.subheader(r["name"])
-    st.markdown(f"**class:** {r.get('drug_class','')}")
-    st.markdown(f"**targets:** {r.get('targets','')}")
-    st.markdown(f"**common side effects:** {r.get('side_effects','')}")
-    st.markdown(f"**summary:** {r.get('summary','')}")
+        st.subheader(r["name"])
+
+    st.markdown(f"**drug class:** {r.get('drug_class','')}")
+    st.markdown(f"**primary use:** {r.get('primary_use','')}")
+    st.markdown(f"**common side effects:** {r.get('common_side_effects','')}")
+
     # interacting partners
-    related = interactions[(interactions["source"]==did) | (interactions["target"]==did)]
+    related = interactions[
+        (interactions["source"] == did) | (interactions["target"] == did)
+    ]
+
     if related.empty:
-        st.write("no recorded interactions in dataset.")
+        st.write("no recorded interactions in this dataset.")
     else:
         st.write("known interactions:")
         for _, row in related.iterrows():
-            other = row["target"] if row["source"]==did else row["source"]
+            other = row["target"] if row["source"] == did else row["source"]
             o_name = drug_by_id.get(other, {}).get("name", other)
-            st.markdown(f"- **{o_name}** — {row.get('type','')} / severity: {row.get('severity','')} — {row.get('notes','')}")
 
-# if user selected from dropdown, show
-if selected_name and selected_name != "-- none --":
-    selected_id = id_by_name.get(selected_name.lower())
-    show_details_by_id(selected_id)
-else:
-    st.info("select a drug from the sidebar to see details.")
+            st.markdown(
+                f"- **{o_name}** — severity: {row.get('severity','')} — {row.get('notes','')}"
+            )
