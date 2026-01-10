@@ -7,7 +7,37 @@ import tempfile
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="mini drug-graph", layout="wide")
-st.title("mini knowledge-graph — drugs (replicate)")
+st.markdown(
+    """
+    <style>
+    .big-title {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 0.2em;
+    }
+    .subtitle {
+        font-size: 16px;
+        color: #6b7280;
+        margin-bottom: 1.5em;
+    }
+    .card {
+        background-color: #f9fafb;
+        padding: 1.2em;
+        border-radius: 12px;
+        margin-bottom: 1em;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown('<div class="big-title">drug–drug interaction explorer</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="subtitle">a simple knowledge graph to visualize known drug interactions (replicate)</div>',
+    unsafe_allow_html=True
+)
+
+st.title("mini knowledge graph")
 
 @st.cache_data
 def load_data(drugs_path="drugs.csv", interactions_path="interactions.csv"):
@@ -22,7 +52,19 @@ drug_by_id = {r["id"]: r for _, r in drugs.iterrows()}
 id_by_name = {r["name"].lower(): r["id"] for _, r in drugs.iterrows()}
 
 # sidebar: search/select
-st.sidebar.header("search / select drug")
+st.sidebar.markdown("## 🔍 find a drug")
+st.sidebar.markdown(
+    """
+    ---
+    **how to use**
+    - search or select a drug  
+    - click nodes to explore  
+    - view interactions below  
+
+    *educational prototype*
+    """
+)
+
 query = st.sidebar.text_input("search by name", "")
 if query:
     # fuzzy-ish simple filter
@@ -61,13 +103,26 @@ for node in nt.nodes:
 # export to temp html and embed
 tmpfile = tempfile.NamedTemporaryFile(suffix=".html", delete=False)
 nt.save_graph(tmpfile.name)
+st.markdown("## interaction graph")
+st.markdown(
+    '<div class="subtitle">nodes represent drugs • edges represent known interactions</div>',
+    unsafe_allow_html=True
+)
+
+components.html(
+    open(tmpfile.name, "r", encoding="utf-8").read(),
+    height=700
+)
 components.html(open(tmpfile.name, "r", encoding="utf-8").read(), height=700)
 
 # details panel (below or right)
 st.markdown("---")
-st.header("drug details")
+st.markdown("## drug details")
+st.markdown('<div class="card">', unsafe_allow_html=True)
 
 def show_details_by_id(did):
+    st.markdown('</div>', unsafe_allow_html=True)
+
     r = drug_by_id.get(did)
     if not r:
         st.info("pick a drug from the search box or click a node (use the dropdown for now).")
